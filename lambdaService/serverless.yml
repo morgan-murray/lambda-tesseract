@@ -1,0 +1,57 @@
+service: whatsappExtractor
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: python3.8
+  region: eu-west-2
+
+package:
+  exclude:
+    - .idea/**
+    - __pycache__/**
+    - .pytest_cache/**
+    - tesseract/**
+    - venv/**
+    - build_tesseract.sh
+    - Dockerfile
+    - extract-test-input.json
+    - requirements.txt
+    - serverless.yml
+    - index.png
+    - handler_test.py
+    - layer/**
+  
+layers:
+  # OCR:
+  #   path: layer
+  #   name: ocr-layer
+  #   description: Layer with Tesseract
+  #   compatibleRuntimes:
+  #     - python3.8
+  #   retain: false
+  #   package:
+  #     include:
+  #       - layer/**
+
+  tesseractAl2:
+    path: ../../aws-lambda-tesseract-layer/ready-to-use/amazonlinux-2
+    compatibleRuntimes:
+      - python3.8
+
+functions:
+  ocr:
+    handler: handler.ocr
+    memorySize: 3008
+    timeout: 15
+    layers:
+      # - {Ref: OCRLambdaLayer}
+      - {Ref: TesseractAl2LambdaLayer}      
+    events:
+      - http:
+          path: ocr
+          method: post
+    package:
+      include:
+        - handler.py
